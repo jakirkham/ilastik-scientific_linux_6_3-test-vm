@@ -1,0 +1,59 @@
+{
+  "min_packer_version": "0.6.0",
+  "variables": {
+    "build_version": "{{env `BUILD_VERSION`}}"
+  },
+  "builders": [
+    {
+      "name": "ScientificLinux-6.3-i386",
+      "type": "virtualbox-iso",
+      "guest_os_type": "RedHat",
+      "iso_url": "http://ftp.scientificlinux.org/linux/scientific/6.3/x86_64/iso/SL-63-x86_64-2012-08-02-Install-DVD.iso",
+      "iso_checksum": "71f769190c5c6afa4d472bb8c57baac4400855fe",
+      "iso_checksum_type": "sha1",
+      "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+      "disk_size": 204800,
+      "http_directory": "http",
+      "boot_command": ["<tab> text ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks.cfg<enter><wait>"],
+      "boot_wait": "10s",
+      "ssh_username": "root",
+      "ssh_password": "vagrant",
+      "ssh_wait_timeout": "90m",
+      "shutdown_command": "sudo /sbin/halt -p now",
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--memory", "480"],
+        ["modifyvm", "{{.Name}}", "--cpus", "1"]
+      ]
+    },
+    {
+      "name": "ScientificLinux-6.3-x86_64",
+      "type": "virtualbox-iso",
+      "guest_os_type": "RedHat_64",
+      "iso_url": "http://ftp.scientificlinux.org/linux/scientific/6.3/x86_64/iso/SL-63-x86_64-2012-08-02-Install-DVD.iso",
+      "iso_checksum": "2204a1f7b0ff1d7b666c903b93b26b3b0ab21a71",
+      "iso_checksum_type": "sha1",
+      "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+      "disk_size": 204800,
+      "http_directory": "http",
+      "boot_command": ["<tab> text ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks.cfg<enter><wait>"],
+      "boot_wait": "10s",
+      "ssh_username": "root",
+      "ssh_password": "vagrant",
+      "ssh_wait_timeout": "90m",
+      "shutdown_command": "sudo /sbin/halt -p now",
+      "vboxmanage": [
+        ["modifyvm", "{{.Name}}", "--memory", "480"],
+        ["modifyvm", "{{.Name}}", "--cpus", "1"]
+      ]
+    }
+  ],
+  "provisioners": [
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "compression_level": 9,
+      "output": "./builds/{{.BuildName}}.box"
+    }
+  ]
+}
