@@ -1,0 +1,429 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+###################################################################
+###################################################################
+# Root provisioning
+# (Vagrant runs these commands are run as the root user)
+###################################################################
+###################################################################
+$root_provision_script = <<END_ROOT_PROVISIONING
+echo "ROOT PROVISION SCRIPT STARTING (user="`whoami`", pwd="`pwd`")"
+
+# This VM uses CentOS 6.3.
+# Need to add EPEL to install fluxbox
+# Need SLC6 to install gcc 4.8
+rpm --import https://fedoraproject.org/static/0608B895.txt
+rpm -Uvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+yum install -y yum-utils
+yum-config-manager --add-repo http://linuxsoft.cern.ch/cern/devtoolset/slc6-devtoolset.repo
+yum-config-manager --add-repo http://ftp.scientificlinux.org/linux/scientific/6/external_products/softwarecollections/x86_64/python27/python27.repo
+
+# Update if we aren't already.
+yum update -y
+
+# Some BuildEM dependencies
+yum install -y make
+yum install -y mercurial
+yum install -y patch
+yum install -y m4
+
+
+# Other Buildem dependencies from current version (Skipped).
+#
+### We prefer not to install these if possible.
+### These versions are too outdated for our use.
+### Instead, we use the ones below.
+### However, they have been left here in case
+### they might be needed in the future.
+#yum install -y cmake
+#yum install -y git
+#yum groupinstall -y development
+#yum install -y gcc-c++
+#yum install -y gcc-gfortran
+#yum install -y python
+
+
+# Other BuildEM dependencies more up to date.
+yum install -y devtoolset-2-toolchain
+yum install -y devtoolset-2-perftools
+yum install -y devtoolset-2-gcc
+yum install -y devtoolset-2-gcc-c++
+yum install -y devtoolset-2-gcc-gfortran
+yum install -y devtoolset-2-gdb
+yum install -y devtoolset-2-git
+yum install -y python27
+yum install -y cmake28
+
+# Install link to cmake using standard name.
+ln -s /usr/bin/cmake28 /usr/local/bin/cmake
+
+# Dependencies of ilastik not included in BuildEM
+# (See BuildEM readme.)
+yum install -y libXext-devel
+yum install -y mesa-libGL-devel
+yum install -y libXt-devel
+yum install -y libxml2-devel
+
+# We need chrpath if we want to generate a redistributable binary package from this VM
+yum install -y chrpath
+
+# Since we'll use X11 for this VM, we must install these packages before building Qt.
+# See http://qt-project.org/doc/qt-4.8/requirements-x11.html
+# Note: Qt will *build* if some of these are omitted,
+#        but you will encounter bugs at runtime.
+yum install -y fontconfig-devel
+yum install -y libXfixes-devel
+yum install -y libXrender-devel
+yum install -y libXcursor-devel
+yum install -y libXrandr-devel
+yum install -y libXinerama-devel
+
+# XVFB allows us to run GUI tests in a virtual screen
+yum install -y xorg-x11-server-Xvfb
+
+# Fluxbox is a light-weight window manager, 
+#  which we use during headless GUI tests (with xvfb)
+yum install -y fluxbox
+
+# The user can manipulate the "headless" screen 
+#  by connecting to it via vnc.
+yum install -y x11vnc
+
+# Hudson compatibility
+# Java is needed so this VM can run as a hudson slave
+yum install -y java-1.7.0-openjdk
+
+# Create a workspace for Hudson to use
+# (In Hudson, provide this path as the node's "Remote FS root")
+HUDSON_REMOTE_FS_ROOT=/var/hudson
+mkdir -p $HUDSON_REMOTE_FS_ROOT
+chmod 777 $HUDSON_REMOTE_FS_ROOT
+
+# Clean any lingering stuff from yum cache.
+yum clean all
+
+echo "ROOT PROVISION SCRIPT DONE"
+END_ROOT_PROVISIONING
+###################################################################
+###################################################################
+
+
+###################################################################
+###################################################################
+# Non-root provisioning
+# (Vagrant runs these commands as the vagrant user)
+###################################################################
+###################################################################
+$nonroot_provision_script = <<END_NONROOT_PROVISIONING
+echo "NONROOT PROVISION SCRIPT STARTING (user="`whoami`", pwd="`pwd`")"
+source /opt/rh/devtoolset-2/enable
+source /opt/rh/python27/enable
+# Set up the build directory, but don't build
+cd /home/vagrant
+mkdir -p ilastik-build
+cd ilastik-build
+BUILDEM_DIR=`pwd`
+if [ ! -d "$BUILDEM_DIR/ilastik-build-Linux" ]; then
+    git clone https://github.com/ilastik/ilastik-build-Linux.git
+else
+    cd ilastik-build-Linux && git pull origin master && cd -
+fi
+
+mkdir -p build
+cd /home/vagrant
+
+
+##########################################################
+# Edit .bashrc to activate BuildEM environment on login. #
+##########################################################
+# This is a little tricky.
+# We mark the end of the .bashrc script to indicate the start of the 
+#  auto-generated portion we are about to write.
+# Then, we *delete* any previous auto-generated section using bash substitution.
+# This way, even if the provision script is run many times for the same VM, the
+#  .bashrc script doesn't end up with lots of duplicate auto-generated lines.
+echo "" >> /home/vagrant/.bashrc
+echo "" >> /home/vagrant/.bashrc
+echo "#BEGIN_PROVISION_AUTOGENERATED_SECTION" >> /home/vagrant/.bashrc
+bashrc_contents=$(cat .bashrc)
+bashrc_without_autogen=${bashrc_contents%%#BEGIN_PROVISION_AUTOGENERATED_SECTION*}
+echo "$bashrc_without_autogen" | head -n-2 > .bashrc
+echo "" >> /home/vagrant/.bashrc
+echo "#BEGIN_PROVISION_AUTOGENERATED_SECTION" >> /home/vagrant/.bashrc
+echo "# Don't edit below this line!" >> /home/vagrant/.bashrc
+echo "# It will be deleted the next time 'vagrant provision' is executed." >> /home/vagrant/.bashrc
+echo "# Activate the SCL devtoolset-2 and python27." >> /home/vagrant/.bashrc
+echo "source /opt/rh/devtoolset-2/enable 2> /dev/null" >> /home/vagrant/.bashrc
+echo "source /opt/rh/python27/enable 2> /dev/null" >> /home/vagrant/.bashrc
+echo "# Automatically activate the BuildEM environment, but ignore errors if it doesn't exist yet." >> /home/vagrant/.bashrc
+echo "export BUILDEM_DIR=$BUILDEM_DIR" >> /home/vagrant/.bashrc
+echo "source $BUILDEM_DIR/bin/setenv_ilastik_gui.sh 2> /dev/null" >> /home/vagrant/.bashrc
+echo "# Set the DISPLAY to :0, so VNC clients can connect to our virtual display"
+echo "export DISPLAY=:0" >> /home/vagrant/.bashrc
+
+###################
+# lazyflow config # 
+###################
+echo "Writing lazyflow config file"
+mkdir -p ~/.lazyflow
+echo "[verbosity]" > ~/.lazyflow/config
+echo "deprecation_warnings = false" >> ~/.lazyflow/config
+
+######################
+# Download test data #
+######################
+echo "Downloading real-world test data"
+TEST_DATA_DIR=/home/vagrant/real_test_data
+if [ ! -d "$TEST_DATA_DIR" ]; then
+    git clone http://github.com/ilastik/ilastik_testdata $TEST_DATA_DIR
+else
+    cd $TEST_DATA_DIR && git pull origin master && cd -
+fi
+
+#########################################################
+# Write headless display activation/deactivation script #
+#########################################################
+cat <<END_VIRTUAL_DISPLAY_CONTROL > virtual_display_control.sh
+
+XVFB=/usr/bin/Xvfb
+XVFB_ARGS="\\$DISPLAY -ac -screen 0 1280x1024x24"
+XVFB_PIDFILE=/tmp/headless_setup_xvfb.pid
+
+FLUXBOX=/usr/bin/fluxbox
+FLUXBOX_ARGS="-display \\$DISPLAY"
+FLUXBOX_PIDFILE="/tmp/headless_setup_fluxbox.pid"
+
+X11VNC=/usr/bin/x11vnc
+X11VNC_ARGS="-rfbport 5900 -shared -forever"
+X11VNC_PIDFILE="/tmp/headless_setup_x11vnc.pid"
+
+case "\\$1" in
+  start)
+    # Check for errors...
+    if [[ -z "\\$DISPLAY" ]]; then
+        echo "DISPLAY environment variable is not set. Please set one, e.g. DISPLAY=:0"
+        exit 1
+    fi
+    
+    if \\`echo \\$DISPLAY | grep -q localhost\\`; then
+        echo "Please set your DISPLAY environment variable for the virtual buffer, e.g. DISPLAY=:0"
+        exit 1
+    fi
+
+    echo "Activating headless environment on current DISPLAY: \\$DISPLAY"
+    echo "Starting virtual X frame buffer: Xvfb"
+    /sbin/start-stop-daemon --start --pidfile \\$XVFB_PIDFILE --make-pidfile --background --exec \\$XVFB -- \\$XVFB_ARGS
+    
+    echo "Starting fluxbox window manager"
+    /sbin/start-stop-daemon --start --pidfile \\$FLUXBOX_PIDFILE --make-pidfile --background --exec \\$FLUXBOX -- \\$FLUXBOX_ARGS
+
+    echo "Starting x11vnc server on port 5900, which is forwarded to the host at 13900."
+    /sbin/start-stop-daemon --start --pidfile \\$X11VNC_PIDFILE --make-pidfile --background --exec \\$X11VNC -- \\$X11VNC_ARGS
+    echo "To view the guest's virtual frame buffer from your host machine, connect your vnc viewer to localhost:13900, DISPLAY=\\$DISPLAY"
+
+    echo "Running the following processes:"    
+    top -b -n1 | grep "\\(Xvfb\\)\\|\\(fluxbox\\)\\|\\(x11vnc\\)"
+    ;;
+  stop)
+    echo "Stopping x11vnc server"
+    /sbin/start-stop-daemon --stop --pidfile \\$X11VNC_PIDFILE
+    rm -f \\$X11VNC_PIDFILE
+
+    echo "Stopping fluxbox window manager"
+    /sbin/start-stop-daemon --stop --pidfile \\$FLUXBOX_PIDFILE
+    rm -f \\$FLUXBOX_PIDFILE
+
+    echo "Stopping virtual X frame buffer: Xvfb"
+    /sbin/start-stop-daemon --stop --pidfile \\$XVFB_PIDFILE
+    rm -f \\$XVFB_PIDFILE
+    ;;
+  restart)
+    \\$0 stop
+    \\$0 start
+    ;;
+  *)
+
+  echo "Usage: \\$0 {start|stop|restart}"
+  exit 1
+esac
+exit 0
+END_VIRTUAL_DISPLAY_CONTROL
+############################
+chmod +x virtual_display_control.sh
+
+######################
+# Write build script #
+######################
+cat <<END_BUILD_SCRIPT > build_ilastik.sh
+#!/bin/bash
+set -e
+cd $BUILDEM_DIR/build
+
+cmake ../ilastik-build-Linux -DBUILDEM_DIR=$BUILDEM_DIR -DILASTIK_VERSION=master
+make "\\$@"
+
+END_BUILD_SCRIPT
+################
+chmod +x build_ilastik.sh
+
+#####################
+# Write test script #
+#####################
+cat <<END_TEST_SCRIPT > run_all_ilastik_tests.sh
+#!/bin/bash
+
+USE_XVFB=0
+SKIP_ALL_GUI_TESTS=0
+SKIP_RECORDED_GUI_TESTS=0
+
+for arg in \\$@
+do
+    case \\$arg in
+        "--use-xvfb")
+            echo "Activating headless environment..."
+            export DISPLAY=:0
+            bash -e /home/vagrant/virtual_display_control.sh start
+            USE_XVFB=1
+            ;;
+        "--skip-gui-tests")
+            echo "Skipping all GUI tests."
+            SKIP_ALL_GUI_TESTS=1
+            ;;
+        "--skip-recorded-gui-tests")
+            echo "Skipping recorded GUI tests."
+            SKIP_RECORDED_GUI_TESTS=1
+            ;;
+    esac
+done
+
+# Run the test in a subshell (using the parens), 
+#  so we can clean up afterwards if there was a failure.
+(
+    set -e # Exit on first failure.
+    
+    # Set up env
+    export BUILDEM_DIR=$BUILDEM_DIR
+    source \\$BUILDEM_DIR/bin/setenv_ilastik_gui.sh
+    export PATH=\\$BUILDEM_DIR/bin:\\$PATH
+    
+    # Update repo to latest checkpoint
+    # (This updates lazyflow, volumina, and ilastik)
+    cd \\$BUILDEM_DIR/src/ilastik
+    # Pull from ilastik github account, not janelia-flyem
+    git remote add ilastik https://github.com/ilastik/ilastik-meta || : # no-op to avoid exit due to set -e
+    git pull ilastik master
+    git submodule update --init --recursive
+    
+    # Update all 3 repos to the latest commit, even though 
+    #  that may not be the commit specified by the meta-repo.
+    cd volumina && git checkout master && git pull origin master && git submodule update --init --recursive && cd -
+    cd lazyflow && git checkout master && git pull origin master && git submodule update --init --recursive && cd -
+    cd ilastik  && git checkout master && git pull origin master && git submodule update --init --recursive && cd -
+    
+    # Run tests
+    echo "Running lazyflow tests...."
+    cd lazyflow/tests
+    nosetests .
+    cd -
+    
+    echo "Running volumina tests...."
+    cd volumina/tests
+    nosetests .
+    cd -
+    
+    echo "Generating synthetic test data"
+    python ilastik/tests/bin/generate_test_data.py /home/vagrant/fake_test_data
+    
+    cd ilastik/tests
+    echo "Running ilastik unit tests"
+    SKIP_GUI_TESTS=\\$SKIP_ALL_GUI_TESTS ./run_each_unit_test.sh
+    
+    if [ \\$SKIP_ALL_GUI_TESTS -eq 0 -a \\$SKIP_RECORDED_GUI_TESTS -eq 0 ]; then
+        echo "Running ilastik recorded GUI tests"
+        ./run_recorded_tests.sh
+    else
+        echo "SKIPPING RECORDED TESTS"
+    fi
+
+    cd ../..
+)
+exit_code=\\$?
+
+# Cleanup: Disable xvfb, then return with the subshell exit code.
+if [[ \\$USE_XVFB -eq 1 ]]
+then
+    echo "Deactivating headless environment."
+    bash -e /home/vagrant/virtual_display_control.sh stop
+fi
+exit \\$exit_code
+
+END_TEST_SCRIPT
+#################
+chmod +x run_all_ilastik_tests.sh
+
+echo "NONROOT PROVISION SCRIPT DONE"
+END_NONROOT_PROVISIONING
+###################################################################
+###################################################################
+
+
+###################################################################
+###################################################################
+## Vagrant Config
+###################################################################
+###################################################################
+Vagrant.configure("2") do |config|
+  # Every Vagrant virtual environment requires a box to build off of.
+  config.vm.box = "ilastikci-cluster-2"
+  config.vm.provision :shell, :inline => $root_provision_script
+  config.vm.provision :shell, :privileged => false, :inline => $nonroot_provision_script
+  config.vm.box_url = "../Packer/builds/ScientificLinux-6.3-x86_64.box"
+  config.vm.hostname = "ilastikci-cluster-2"
+
+  # Enable x11 forwarding (as if using ssh -X)
+  ###config.ssh.forward_x11 = true
+
+  # VirtualBox settings
+  config.vm.provider :virtualbox do |vb|
+    # Don't boot with headless mode
+    #vb.gui = true
+
+     # Use VBoxManage to customize the VM.
+     # For more options, check the help message for the VBoxManage command
+     vb.customize ["modifyvm", :id,
+                           "--memory", "2048",
+     			   "--cpus", "4",
+     			   "--cpuexecutioncap", "100" ]
+  end
+
+  # ADDITIONAL OPTIONS:
+
+  # Share an additional folder to the guest VM. The first argument is
+  # the path on the host to the actual folder. The second argument is
+  # the path on the guest to mount the folder. And the optional third
+  # argument is a set of non-required options.
+  # config.vm.synced_folder "../data", "/vagrant_data"
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine. In the example below,
+  # accessing "localhost:8080" will access port 80 on the guest machine.
+  # config.vm.network :forwarded_port, guest: 80, host: 8080
+  config.vm.network :forwarded_port, guest: 22, host: 10022
+  config.vm.network :forwarded_port, guest: 5900, host: 15900
+
+  # Create a private network, which allows host-only access to the machine
+  # using a specific IP.
+  # config.vm.network :private_network, ip: "192.168.33.10"
+
+  # Create a public network, which generally matched to bridged network.
+  # Bridged networks make the machine appear as another physical device on
+  # your network.
+  # config.vm.network :public_network, :bridge => 'eth0'
+
+  # Comes in handy if there is menu selection required.
+  #config.vm.provider :virtualbox do |vb|
+  #  vb.gui = true
+  #end
+
+end
