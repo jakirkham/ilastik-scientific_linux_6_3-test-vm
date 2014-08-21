@@ -378,7 +378,8 @@ Vagrant.configure("2") do |config|
   config.vm.box = "ilastikci-cluster-2"
   config.vm.provision :shell, :inline => $root_provision_script
   config.vm.provision :shell, :privileged => false, :inline => $nonroot_provision_script
-  config.vm.box_url = "../Packer/builds/ScientificLinux-6.3-x86_64.box"
+  config.vm.box_url = "https://dl.dropboxusercontent.com/s/h6jym3kc9xxwu4e/ScientificLinux-6.3-x86_64.box"
+  #config.vm.box_url = "../Packer/builds/ScientificLinux-6.3-x86_64.box"
   config.vm.hostname = "ilastikci-cluster-2"
 
   # Enable x11 forwarding (as if using ssh -X)

@@ -34,7 +34,8 @@ This package provides two main portions.
 
 1. The Packer portion, which contains a JSON file to be given to Packer for building the ScientificLinux 6.3 box and a kickstart file for automating the OS install.
 2. The vagrant portion, which contains the Vagrantfile for provisioning and starting up the VM using the Packer built box.
-  * If you wish to build the i386 box, you will need to change the filename used in the Vagrantfile.
+  * Currently, uses a previously built box, which it links to. In order to use a Packer built box, just comment the existing config.vm.box_url and uncomment the other one.
+  * Also, if you wish to build the i386 box, you will need to change the filename used in the Vagrantfile.
 
 Getting started
 ===============
