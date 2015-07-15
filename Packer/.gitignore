@@ -1,0 +1,4 @@
+# Packer stuff
+builds/
+crash.log
+packer_cache/
