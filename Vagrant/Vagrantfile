@@ -393,7 +393,7 @@ Vagrant.configure("2") do |config|
      # Use VBoxManage to customize the VM.
      # For more options, check the help message for the VBoxManage command
      vb.customize ["modifyvm", :id,
-                           "--memory", "2048",
+                           "--memory", "4096",
      			   "--cpus", "4",
      			   "--cpuexecutioncap", "100" ]
   end
