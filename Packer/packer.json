@@ -8,7 +8,7 @@
       "name": "ScientificLinux-6.3-i386",
       "type": "virtualbox-iso",
       "guest_os_type": "RedHat",
-      "iso_url": "http://ftp.scientificlinux.org/linux/scientific/6.3/x86_64/iso/SL-63-x86_64-2012-08-02-Install-DVD.iso",
+      "iso_url": "http://ftp.scientificlinux.org/linux/scientific/6.3/i386/iso/SL-63-i386-2012-08-02-Install-DVD.iso",
       "iso_checksum": "71f769190c5c6afa4d472bb8c57baac4400855fe",
       "iso_checksum_type": "sha1",
       "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
