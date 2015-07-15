@@ -159,8 +159,8 @@ echo "source /opt/rh/python27/enable 2> /dev/null" >> /home/vagrant/.bashrc
 echo "# Automatically activate the BuildEM environment, but ignore errors if it doesn't exist yet." >> /home/vagrant/.bashrc
 echo "export BUILDEM_DIR=$BUILDEM_DIR" >> /home/vagrant/.bashrc
 echo "source $BUILDEM_DIR/bin/setenv_ilastik_gui.sh 2> /dev/null" >> /home/vagrant/.bashrc
-echo "# Set the DISPLAY to :0, so VNC clients can connect to our virtual display"
-echo "export DISPLAY=:0" >> /home/vagrant/.bashrc
+#echo "# Set the DISPLAY to :0, so VNC clients can connect to our virtual display"
+#echo "export DISPLAY=:0" >> /home/vagrant/.bashrc
 
 ###################
 # lazyflow config # 
