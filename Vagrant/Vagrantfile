@@ -13,7 +13,7 @@ echo "ROOT PROVISION SCRIPT STARTING (user="`whoami`", pwd="`pwd`")"
 # This VM uses CentOS 6.3.
 # Need to add EPEL to install fluxbox
 # Need SLC6 to install gcc 4.8
-rpm --import https://fedoraproject.org/static/0608B895.txt
+rpm --import http://fedoraproject.org/static/0608B895.txt
 rpm -Uvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 yum install -y yum-utils
 yum-config-manager --add-repo http://linuxsoft.cern.ch/cern/devtoolset/slc6-devtoolset.repo
@@ -125,7 +125,7 @@ mkdir -p ilastik-build
 cd ilastik-build
 BUILDEM_DIR=`pwd`
 if [ ! -d "$BUILDEM_DIR/ilastik-build-Linux" ]; then
-    git clone https://github.com/ilastik/ilastik-build-Linux.git
+    git clone http://github.com/ilastik/ilastik-build-Linux.git
 else
     cd ilastik-build-Linux && git pull origin master && cd -
 fi
@@ -311,7 +311,7 @@ done
     # (This updates lazyflow, volumina, and ilastik)
     cd \\$BUILDEM_DIR/src/ilastik
     # Pull from ilastik github account, not janelia-flyem
-    git remote add ilastik https://github.com/ilastik/ilastik-meta || : # no-op to avoid exit due to set -e
+    git remote add ilastik http://github.com/ilastik/ilastik-meta || : # no-op to avoid exit due to set -e
     git pull ilastik master
     git submodule update --init --recursive
     
@@ -378,7 +378,7 @@ Vagrant.configure("2") do |config|
   config.vm.box = "ilastikci-cluster-2"
   config.vm.provision :shell, :inline => $root_provision_script
   config.vm.provision :shell, :privileged => false, :inline => $nonroot_provision_script
-  config.vm.box_url = "https://dl.dropboxusercontent.com/s/h6jym3kc9xxwu4e/ScientificLinux-6.3-x86_64.box"
+  config.vm.box_url = "http://dl.dropboxusercontent.com/s/h6jym3kc9xxwu4e/ScientificLinux-6.3-x86_64.box"
   #config.vm.box_url = "../Packer/builds/ScientificLinux-6.3-x86_64.box"
   config.vm.hostname = "ilastikci-cluster-2"
 
