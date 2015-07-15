@@ -383,7 +383,7 @@ Vagrant.configure("2") do |config|
   config.vm.hostname = "ilastikci-cluster-2"
 
   # Enable x11 forwarding (as if using ssh -X)
-  ###config.ssh.forward_x11 = true
+  config.ssh.forward_x11 = true
 
   # VirtualBox settings
   config.vm.provider :virtualbox do |vb|
