@@ -64,5 +64,11 @@
         "version": "0.0.1"
       }
     }
-  ]
+  ],
+  "push": {
+    "include": [
+      "http",
+      "packer.json"
+    ]
+  }
 }
