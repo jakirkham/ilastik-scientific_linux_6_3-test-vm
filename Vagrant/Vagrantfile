@@ -10,7 +10,7 @@
 $root_provision_script = <<END_ROOT_PROVISIONING
 echo "ROOT PROVISION SCRIPT STARTING (user="`whoami`", pwd="`pwd`")"
 
-# This VM uses CentOS 6.3.
+# This VM uses ScientificLinux 6.3.
 
 # Upgrade NSS as curl won't work otherwise ( http://serverfault.com/questions/606135/curl-35-ssl-connect-error ).
 yum update -y nss
