@@ -11,6 +11,10 @@ $root_provision_script = <<END_ROOT_PROVISIONING
 echo "ROOT PROVISION SCRIPT STARTING (user="`whoami`", pwd="`pwd`")"
 
 # This VM uses CentOS 6.3.
+
+# Upgrade NSS as curl won't work otherwise ( http://serverfault.com/questions/606135/curl-35-ssl-connect-error ).
+yum update -y nss
+
 # Need to add EPEL to install fluxbox
 # Need SLC6 to install gcc 4.8
 rpm --import http://fedoraproject.org/static/0608B895.txt
