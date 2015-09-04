@@ -54,6 +54,16 @@
       "type": "vagrant",
       "compression_level": 9,
       "output": "./builds/{{.BuildName}}.box"
+    },
+    {
+      "type": "atlas",
+      "only": ["virtualbox-iso"],
+      "artifact": "{{user `atlas_username`}}/{{user `atlas_name`}}",
+      "artifact_type": "vagrant.box",
+      "metadata": {
+        "provider": "virtualbox",
+        "version": "0.0.1"
+      }
     }
   ]
 }
