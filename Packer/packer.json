@@ -57,6 +57,17 @@
     },
     {
       "type": "atlas",
+      "only": ["ScientificLinux-6.3-i386"],
+      "artifact": "{{user `atlas_username`}}/{{user `atlas_name`}}",
+      "artifact_type": "vagrant.box",
+      "metadata": {
+        "provider": "virtualbox",
+        "version": "0.0.1"
+      }
+    },
+    {
+      "type": "atlas",
+      "only": ["ScientificLinux-6.3-x86_64"],
       "artifact": "{{user `atlas_username`}}/{{user `atlas_name`}}",
       "artifact_type": "vagrant.box",
       "metadata": {
