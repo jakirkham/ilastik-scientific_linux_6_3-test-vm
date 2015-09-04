@@ -67,7 +67,7 @@
   ],
   "push": {
     "include": [
-      "http",
+      "http/*",
       "packer.json"
     ]
   }
