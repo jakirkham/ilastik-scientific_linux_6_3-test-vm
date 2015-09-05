@@ -58,7 +58,7 @@
     {
       "type": "atlas",
       "only": ["ScientificLinux-6.3-i386"],
-      "artifact": "{{user `atlas_username`}}/{{user `atlas_name`}}",
+      "artifact": "jakirkham/ilastik-scientific_linux_6_3-test-vm",
       "artifact_type": "vagrant.box",
       "metadata": {
         "provider": "virtualbox",
@@ -68,7 +68,7 @@
     {
       "type": "atlas",
       "only": ["ScientificLinux-6.3-x86_64"],
-      "artifact": "{{user `atlas_username`}}/{{user `atlas_name`}}",
+      "artifact": "jakirkham/ilastik-scientific_linux_6_3-test-vm",
       "artifact_type": "vagrant.box",
       "metadata": {
         "provider": "virtualbox",
