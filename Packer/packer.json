@@ -77,6 +77,7 @@
     }
   ]],
   "push": {
+    "name": "jakirkham/ilastik-scientific_linux_6_3-test-vm",
     "include": [
       "http/*",
       "packer.json"
