@@ -14,7 +14,7 @@
       "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
       "disk_size": 204800,
       "http_directory": "http",
-      "boot_command": ["<tab> text ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks-i386.cfg<enter><wait10><wait10><wait10><enter><wait>"],
+      "boot_command": ["<tab> text ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks-i386.cfg<enter><wait10><wait10><wait10><wait5><enter><wait>"],
       "boot_wait": "10s",
       "ssh_username": "root",
       "ssh_password": "vagrant",
@@ -35,7 +35,7 @@
       "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
       "disk_size": 204800,
       "http_directory": "http",
-      "boot_command": ["<tab> text ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks-x86_64.cfg<enter><wait10><wait10><wait10><enter><wait>"],
+      "boot_command": ["<tab> text ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks-x86_64.cfg<enter><wait10><wait10><wait10><wait5><enter><wait>"],
       "boot_wait": "10s",
       "ssh_username": "root",
       "ssh_password": "vagrant",
@@ -49,11 +49,38 @@
   ],
   "provisioners": [
   ],
-  "post-processors": [
+  "post-processors": [[
     {
       "type": "vagrant",
       "compression_level": 9,
       "output": "./builds/{{.BuildName}}.box"
+    },
+    {
+      "type": "atlas",
+      "only": ["ScientificLinux-6.3-i386"],
+      "artifact": "jakirkham/ilastik-sci_linux_6_3-test-vm_32",
+      "artifact_type": "vagrant.box",
+      "metadata": {
+        "provider": "virtualbox",
+        "version": "0.0.2"
+      }
+    },
+    {
+      "type": "atlas",
+      "only": ["ScientificLinux-6.3-x86_64"],
+      "artifact": "jakirkham/ilastik-sci_linux_6_3-test-vm_64",
+      "artifact_type": "vagrant.box",
+      "metadata": {
+        "provider": "virtualbox",
+        "version": "0.0.2"
+      }
     }
-  ]
+  ]],
+  "push": {
+    "name": "jakirkham/ilastik-scientific_linux_6_3-test-vm",
+    "include": [
+      "http/*",
+      "packer.json"
+    ]
+  }
 }
