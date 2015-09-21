@@ -389,7 +389,7 @@ Vagrant.configure("2") do |config|
   config.ssh.forward_x11 = true
 
   # Change the `sudo` command.
-  config.ssh.sudo_command = "sudo -H %c"
+  config.ssh.sudo_command = "sudo %c"
 
   # VirtualBox settings
   config.vm.provider :virtualbox do |vb|
